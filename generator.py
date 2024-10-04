@@ -12,38 +12,49 @@ def setup_logger():
 
 
 def generate_passphrase(number_of_words:int = 6, seprator: str = '+') -> str:
-    
 
-#    number1 = 30745
-#    number2 = 46152
-#    number3 = 51326
-#    number4 = 46251
-#    number5 = 61342
-#    number6 = 52614
-
-    number1 = generate_random_number()
-    number2 = generate_random_number()
-    number3 = generate_random_number()
-    number4 = generate_random_number()
-    number5 = generate_random_number()
-    number6 = generate_random_number()
-
-    word1 = choose_word_from_wordlist(number1)
-    word2 = choose_word_from_wordlist(number2)
-    word3 = choose_word_from_wordlist(number3)
-    word4 = choose_word_from_wordlist(number4)
-    word5 = choose_word_from_wordlist(number5)
-    word6 = choose_word_from_wordlist(number6)
+#    number1 = generate_random_number()
+#    number2 = generate_random_number()
+#    number3 = generate_random_number()
+#    number4 = generate_random_number()
+#    number5 = generate_random_number()
+#    number6 = generate_random_number()
+#
+#    word1 = choose_word_from_wordlist(number1)
+#    word2 = choose_word_from_wordlist(number2)
+#    word3 = choose_word_from_wordlist(number3)
+#    word4 = choose_word_from_wordlist(number4)
+#    word5 = choose_word_from_wordlist(number5)
+#    word6 = choose_word_from_wordlist(number6)
 
 
-    passphrase =str(
-                word1 + seprator + 
-                word2 + seprator + 
-                word3 + seprator +
-                word4 + seprator +
-                word5 + seprator +
-                word6 + seprator 
-                )
+#    passphrase =str(
+#                word1 + seprator + 
+#                word2 + seprator + 
+#                word3 + seprator +
+#                word4 + seprator +
+#                word5 + seprator +
+#                word6 + seprator 
+#                )
+
+    ## Number of Words should be minimum of 3
+
+    if (number_of_words < 3):
+        raise ValueError("number_of_words can not be less than 3")
+
+    passphrase = ""                 # Intialize Empty passphrase String
+
+
+    for iteration in range(number_of_words):
+        number = generate_random_number()
+        word = choose_word_from_wordlist(number)
+        passphrase = str(passphrase) + str(word)
+        
+        if (iteration == number_of_words - 1):   #Last entry
+            pass
+        else:
+            passphrase = str(passphrase) + str(seprator)
+
 
     return str(passphrase)
 
