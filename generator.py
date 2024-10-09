@@ -3,6 +3,8 @@ import random
 import logging
 import secrets
 
+import sys
+
 
 def setup_logger():
     logger = logging.Logger(__name__)
@@ -16,29 +18,53 @@ def setup_logger():
     return logger
 
 
-def generate_passphrase(number_of_words:int = 6, seprator: str = '+') -> str:
+def generate_passphrase(number_of_words:int = 6, separator: str = '+', include_numbers: bool = False) -> str:
 
     ## Number of Words should be minimum of 3
     if (number_of_words < 3):
         raise ValueError("number_of_words can not be less than 3, Its really insecure")
 
-    # Intialize Empty passphrase String
-    passphrase = ""                 
+    # Intialize Empty passphrase list, we will convert this to string later
+    passphrase = []
 
+    if include_numbers:
+        # Add 1 to make sure we atleast have one number as secrets.randbelow is lower bound inclusive [0,arg)
+        num_numbers = secrets.randbelow(number_of_words) + 1
+
+        # Intialize an Emptpy list for random number that will be held for sprinkling
+        list_of_numbers = []
+
+        # Pick random digits and insert at random positions
+        for _ in range(num_numbers):
+            number = secrets.randbelow(10)
+            # Insert the number at random position in the list, +1 to make sure upperbound is positive
+            insert_position = secrets.randbelow(len(list_of_numbers) +1)
+            list_of_numbers.insert(insert_position, number)
+        
     for iteration in range(number_of_words):
         # number = generate_random_number()
         number = generate_cryptographically_secure_psuedo_random_number()
         word = choose_word_from_wordlist(number)
-        passphrase = str(passphrase) + str(word)
-        
-        if (iteration == number_of_words - 1):   #Last entry
-            pass
-        else:
-            passphrase = str(passphrase) + str(seprator)
 
-    return str(passphrase)
+        #Append new word to the passphrase
+        passphrase.append(word)
 
+        # if there are still number left in the list, pick one at random and append after the word.
+        if list_of_numbers:
 
+            index_of_number_to_insert  = secrets.randbelow(len(list_of_numbers))
+            passphrase.append(str(list_of_numbers[index_of_number_to_insert]))
+            list_of_numbers.pop(index_of_number_to_insert)
+
+        # Add a seprator for every word additona, except the last one
+        if iteration < number_of_words -1:
+            passphrase.append(separator)
+
+    
+    string_passphrase = ''.join(passphrase)
+    return string_passphrase
+
+# returns a randomly choosen 5 digit number that reprsent throwing 5 dices and returns the number
 def generate_cryptographically_secure_psuedo_random_number() -> int:
     
     # Faces of the Die that can be chosen at random
@@ -47,9 +73,15 @@ def generate_cryptographically_secure_psuedo_random_number() -> int:
     # 5 rolls to generate a 5-digit number like '15126'
     digits = 5
 
-    rand_number = ''.join(str(secrets.choice(choice_list)) for _ in range(digits))
+    # Chooses a list of 5 digits from the choice list, to simulate throwing 5 dices
+    rand_digits = [secrets.choice(choice_list) for _ in range(digits)]
 
-    return int(rand_number)
+    # Takes a list and shuffles the list in place around to have more entropy
+    random.shuffle(rand_digits)
+
+    shuffled_rand_number = ''.join(map(str, rand_digits))
+
+    return int(shuffled_rand_number)
 
 
 def choose_word_from_wordlist(number: int) -> str:
@@ -66,14 +98,48 @@ def choose_word_from_wordlist(number: int) -> str:
     raise IndexError("choosen number out of bounds of wordlist")
 
 
+
+
+def is_valid_separator(separator:str) -> bool:
+    # Check it the separator is a single Charater
+    return len(separator) == 1
+
+
+
+class input_class:
+
+    def __init__(self):
+        self.number_of_words: int = 6
+        self.seprator: str = "-"
+        self.include_numbers: bool = True
+
+        # Stil left to implement
+        self.capitalize: bool = True
+
+
+
 # Main Execution Block
 if __name__ == "__main__":
 
-    logger = setup_logger()
-    
+    logger = setup_logger()    
     logger.debug("Creating Random PassPhrase")
 
-    passphrase = generate_passphrase(number_of_words=6, seprator='$')
+    
+
+    if len(sys.argv) != 3:
+        raise ValueError("\n\n Error: Needs two arguments \n1.number_of_words \n2.separator \n")
+    
+    number_of_words = int(sys.argv[1])
+    separator = str(sys.argv[2])
+
+    
+
+    if not (is_valid_separator(separator=separator)):
+        raise ValueError ("Seprator should be a single character")
+
+
+
+    passphrase = generate_passphrase(number_of_words=number_of_words, separator=separator, include_numbers= True)
     print(passphrase)
 
-
+    
